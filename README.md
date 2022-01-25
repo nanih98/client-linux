@@ -75,14 +75,12 @@ TIP: Hit ENTER in username and password questions if you don't have a user accou
 
 ### ***Windows***
 
-   * Download the zip, unzip in the place you like and run "vpnroulette-win.exe"  https://github.com/zpol/vpnroulette-client/raw/main/utils/Windows/VpnRouletteWindowsPortableClient.zip
-   * Click on the icon with our logo on your desktop any time you want to use our service!   
-    <br/><center><img src="utils/vpnroulette_Windows.gif" width="600"></center>
+   * Coming soon...
 
 
 ## ***Want to know more?***
 
 Join our community and discover how to become a node and build an unstoppable VPN network all around the world.
 
-* **Website:** https://vpnroulette.net  
+* **Website:** https://vpnroulette.com
 * **Discord server:** https://discord.gg/6CCD6P3T  
