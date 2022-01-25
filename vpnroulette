@@ -1,0 +1,117 @@
+#!/bin/bash
+
+VPNR_API_URL="http://api2.vpnroulette.net:8181/tunnel/random"
+TUNNEL_DATA="/tmp/tunnel_data.ovpn.raw"
+TUNNEL_DATA_OK="/tmp/tunnel_data.ovpn"
+configfile=./configfile.conf
+VERSION="0.9 Beta release"
+PSR="\e[35m >> \e[92m"
+PSRE="\e[31m >> \e[92m"
+DEF="\e[39m "
+DEPENDENCIES=('openvpn' 'jq' 'curl')
+
+
+function is_installed() {
+	II=$(which $1 |grep -c $1)
+	echo "${II}"
+}
+
+function check_deps() {
+  printf "${PSR} Checking dependencies.......... ${DEF}\n"
+	for pkg in ${DEPENDENCIES[@]}; do
+		i=$(is_installed $pkg)
+		if [ ${i} != "1" ]; then
+			printf "${PSRE} ${pkg} is not installed. Please install ${pkg} and run vpnroulette again${DEF}\n"
+			exit 2
+		else
+			printf "${PSR} ${pkg} is installed ......OK${DEF}\n"
+		fi
+	done
+}
+
+function banner() {
+
+    if [ $(is_installed toilet) != "1" ]; then
+      echo "·-= VPNROULETTE =-· Alpha Release "
+    else
+      toilet --gay -f future "VPNRoulette"
+    fi
+
+    echo "Simply the best VPN tunnel generator ;)"
+    echo "---------------------------------------"
+    echo ""
+    echo "Version: ${VERSION}"
+}
+
+function loginNoConfigFile() {
+    printf "${PSR} Please enter your username (joe@something.tld): ${DEF}"
+    read vpnr_username
+    printf "${PSR} Password: ${DEF}"
+    read -sp "" vpnr_password
+    echo ""
+}
+
+function loginWithConfigFile() {
+        vpnr_username=$(cat $configfile |cut -d: -f1)
+        vpnr_password=$(cat $configfile |cut -d: -f2)
+        printf "$PSR Logging automatically in with credentials [$vpnr_username] and passwd [**********] $DEF \n"
+}
+
+function auth() {
+    printf "$PSR Getting a random tunnel, please wait,... $DEF\n"
+    # Get tunnel from API
+    #curl -L -X POST "$VPNR_API_URL/" -H "Content-Type: application/json" -H "X-Requested.With: XMLHttpRequest" --data-raw "{  \"email\": \"${vpnr_username}\", \"password\": \"${vpnr_password}\"  }" > /tmp/tunnel_data.b64
+    printf "$PSR Sending Auth credentials,.... $DEF\n"
+    tunnel_data_b64=./tunnel_data.b64
+    curl -s ${VPNR_API_URL} \
+        -H 'Connection: keep-alive' \
+        -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36' \
+        -H 'X-Requested-With: XMLHttpRequest' \
+        -H 'Authorization: Bearer null' \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: /' \
+        -H 'Referer: http://api2.vpnroulette.net/' \
+        --compressed | jq -r .content |base64 -d| sed "s/\"//g"| sed "s/\\\n//g"|grep -v "^\ up\|^\ down" > ${TUNNEL_DATA}
+}
+
+function get_tunnel_metadata() {
+    VPNR_TUNNEL_IP=$(cat ${TUNNEL_DATA}|grep remote |egrep -o "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}")
+    printf "$PSR VPN Tunnel retrieved successfully! :) $DEF\n"
+    country=$(curl -s https://freegeoip.app/json/${VPNR_TUNNEL_IP}|jq -r .country_name)
+    printf "$PSR Random country [${country}] $DEF\n"
+    printf "$PSR Your new public IP addres is now [${VPNR_TUNNEL_IP}] $DEF\n"
+    echo ""
+    printf "$PSR Enjoy your connection! - Press CRTL+C to close the VPN tunnel $DEF\n"
+}
+
+function sanitize_data() {
+  cat $1 | sed "s/^down.*//" | sed "s/^up.*//" > ${TUNNEL_DATA_OK}
+}
+
+function connect() {
+    sanitize_data ${TUNNEL_DATA} > ${TUNNEL_DATA_OK}
+    sudo openvpn ${TUNNEL_DATA_OK}
+    printf "$PSR You can close the terminal window now... $DEF\n"
+}
+
+function check_conn() {
+    IS_CONN=$(netstat -rn |grep -c tun)
+    if [ ${IS_CONN} -lt "3" ]; then
+        printf "$PSRE ERROR: You're not connected (missing tun0 device) $DEF\n"
+    else
+        printf "$PSR Connected to VPNRoulette. Country [$country] ........... [OK] $DEF\n"
+    fi
+}
+
+check_deps
+banner
+if [ ! -f $configfile ]; then
+    loginNoConfigFile
+else
+    loginWithConfigFile
+fi
+
+
+auth
+get_tunnel_metadata
+connect
