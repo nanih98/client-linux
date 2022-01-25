@@ -8,7 +8,7 @@ DEF="\e[39m "
 
 
 function banner() {
-	echo -e "${PSR} Thank you for using VPNROULETTE! [https://vpnroulette.net]${DEF}"
+	echo -e "${PSR} Thank you for using VPNROULETTE! [https://vpnroulette.com]${DEF}"
 	echo -e "${PSR} ----------------------------------------------------------${DEF}"
 	echo ""
 	echo -e "${PSR} Now you can type: ${DEF}vpnroulette and press ENTER"
@@ -18,7 +18,7 @@ function banner() {
 
 function install() {
 	echo -e "${PSR} Installing vpnroulette into ${INSTALL_PATH}...............${DEF}"
-	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/zpol/vpnroulette-debian/main/vpnroulette"
+	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/vpnroulette"
 	chmod +x ${INSTALL_PATH}
 }
 
