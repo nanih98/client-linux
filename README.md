@@ -59,10 +59,10 @@ TIP: Hit ENTER in username and password questions if you don't have a user accou
 
   * Open a terminal window and type:
 
-    ` curl -s https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-debian.sh | sudo bash `
 
-    This will check for some dependencies like openvpn client and some other tools like jq, curl, ... and install vpnroulette in your system.
+    `curl -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-debian.sh" | sudo bash -`
 
+    
 #### ***RedHat based distributions***
 
 [in progress]
@@ -71,8 +71,11 @@ TIP: Hit ENTER in username and password questions if you don't have a user accou
 
    * Open a terminal and type:
 
-    curl -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-mac.sh" |bash -
 
+       `curl -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-mac.sh" |bash -`
+
+
+    
 
 ### ***Raspi3/4***
 
