@@ -1,117 +1,198 @@
-#!/bin/bash
+#!/usr/local/bin/python3
 
-VPNR_API_URL="http://api2.vpnroulette.net:8181/tunnel/random"
-TUNNEL_DATA="/tmp/tunnel_data.ovpn.raw"
-TUNNEL_DATA_OK="/tmp/tunnel_data.ovpn"
-configfile=./configfile.conf
-VERSION="0.9 Beta release"
-PSR="\e[35m >> \e[92m"
-PSRE="\e[31m >> \e[92m"
-DEF="\e[39m "
-DEPENDENCIES=('openvpn' 'jq' 'curl')
+from base64 import encode
+import sys
+from importlib_metadata import version
+from itsdangerous import base64_decode
+import requests
+import json
+import re
+import os
+import subprocess
 
+from colorama import init
+init(strip=not sys.stdout.isatty()) # strip colors if stdout is redirected
+from termcolor import cprint 
+from pyfiglet import figlet_format
 
-function is_installed() {
-	II=$(which $1 |grep -c $1)
-	echo "${II}"
-}
+version="Beta release 1.0"
+cprint(figlet_format('VPNroulette', font='speed'), 'green')
+print(version+"\n")
+global file 
+file = os.path.expanduser('~/.vpnr-client/tunnel.ovpn')
+config_dir = os.path.expanduser('~/.vpnr-client')
 
-function check_deps() {
-  printf "${PSR} Checking dependencies.......... ${DEF}\n"
-	for pkg in ${DEPENDENCIES[@]}; do
-		i=$(is_installed $pkg)
-		if [ ${i} != "1" ]; then
-			printf "${PSRE} ${pkg} is not installed. Please install ${pkg} and run vpnroulette again${DEF}\n"
-			exit 2
-		else
-			printf "${PSR} ${pkg} is installed ......OK${DEF}\n"
-		fi
-	done
-}
-
-function banner() {
-
-    if [ $(is_installed toilet) != "1" ]; then
-      echo "·-= VPNROULETTE =-· Alpha Release "
-    else
-      toilet --gay -f future "VPNRoulette"
-    fi
-
-    echo "Simply the best VPN tunnel generator ;)"
-    echo "---------------------------------------"
-    echo ""
-    echo "Version: ${VERSION}"
-}
-
-function loginNoConfigFile() {
-    printf "${PSR} Please enter your username (joe@something.tld): ${DEF}"
-    read vpnr_username
-    printf "${PSR} Password: ${DEF}"
-    read -sp "" vpnr_password
-    echo ""
-}
-
-function loginWithConfigFile() {
-        vpnr_username=$(cat $configfile |cut -d: -f1)
-        vpnr_password=$(cat $configfile |cut -d: -f2)
-        printf "$PSR Logging automatically in with credentials [$vpnr_username] and passwd [**********] $DEF \n"
-}
-
-function auth() {
-    printf "$PSR Getting a random tunnel, please wait,... $DEF\n"
-    # Get tunnel from API
-    #curl -L -X POST "$VPNR_API_URL/" -H "Content-Type: application/json" -H "X-Requested.With: XMLHttpRequest" --data-raw "{  \"email\": \"${vpnr_username}\", \"password\": \"${vpnr_password}\"  }" > /tmp/tunnel_data.b64
-    printf "$PSR Sending Auth credentials,.... $DEF\n"
-    tunnel_data_b64=./tunnel_data.b64
-    curl -s ${VPNR_API_URL} \
-        -H 'Connection: keep-alive' \
-        -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36' \
-        -H 'X-Requested-With: XMLHttpRequest' \
-        -H 'Authorization: Bearer null' \
-        -H 'Content-Type: application/json' \
-        -H 'Accept: /' \
-        -H 'Referer: http://api2.vpnroulette.net/' \
-        --compressed | jq -r .content |base64 -d| sed "s/\"//g"| sed "s/\\\n//g"|grep -v "^\ up\|^\ down" > ${TUNNEL_DATA}
-}
-
-function get_tunnel_metadata() {
-    VPNR_TUNNEL_IP=$(cat ${TUNNEL_DATA}|grep remote |egrep -o "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}")
-    printf "$PSR VPN Tunnel retrieved successfully! :) $DEF\n"
-    country=$(curl -s https://freegeoip.app/json/${VPNR_TUNNEL_IP}|jq -r .country_name)
-    printf "$PSR Random country [${country}] $DEF\n"
-    printf "$PSR Your new public IP addres is now [${VPNR_TUNNEL_IP}] $DEF\n"
-    echo ""
-    printf "$PSR Enjoy your connection! - Press CRTL+C to close the VPN tunnel $DEF\n"
-}
-
-function sanitize_data() {
-  cat $1 | sed "s/^down.*//" | sed "s/^up.*//" > ${TUNNEL_DATA_OK}
-}
-
-function connect() {
-    sanitize_data ${TUNNEL_DATA} > ${TUNNEL_DATA_OK}
-    sudo openvpn ${TUNNEL_DATA_OK}
-    printf "$PSR You can close the terminal window now... $DEF\n"
-}
-
-function check_conn() {
-    IS_CONN=$(netstat -rn |grep -c tun)
-    if [ ${IS_CONN} -lt "3" ]; then
-        printf "$PSRE ERROR: You're not connected (missing tun0 device) $DEF\n"
-    else
-        printf "$PSR Connected to VPNRoulette. Country [$country] ........... [OK] $DEF\n"
-    fi
-}
-
-check_deps
-banner
-if [ ! -f $configfile ]; then
-    loginNoConfigFile
-else
-    loginWithConfigFile
-fi
+country_codes = ["ES","US","UK","DE","FR","IT","NL","BE","SE","NO","DK","FI","PL","CZ","AT"]
 
 
-auth
-get_tunnel_metadata
-connect
+# show country list for user to select one
+def show_country_list(country_codes):
+    for i, country in enumerate(country_codes):
+
+        # print countries in 3 aligned columns with numbers
+        index_num = i + 1
+        if i % 3 == 0:
+            print("")
+        print(bcolors.OKBLUE + str(index_num)+'. ' + bcolors.OKGREEN + country + bcolors.ENDC, end="   ")
+        
+    print("")
+    # read selected country
+    country = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Select country: " + bcolors.ENDC)
+    # associate selected number with country code
+    country_code = country_codes[int(country)-1]
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "You selected: " + bcolors.ENDC + country_code)
+    return country_code
+    
+    
+
+# function ask user for access credentials
+def ask_credentials():
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Please enter your credentials:" + bcolors.ENDC)
+    vpnrusermail = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Email: " + bcolors.ENDC)
+    vpnruserpasswd = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Password: " + bcolors.ENDC)
+    login(vpnrusermail, vpnruserpasswd)
+
+# functio to check if dependencies are installed
+def check_dependencies():
+    try:
+        import requests
+        import json
+        import re
+        import colorama
+        import pyfiglet
+        import termcolor
+    except ImportError:
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "Please install the following dependencies:")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install requests")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install json")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install re")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install colorama")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install pyfiglet")
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "pip3 install termcolor")
+        sys.exit(1)
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def print_banner():
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "-----------------------------------------< D I S C L A I M E R >------------------------------------------" + bcolors.ENDC)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "  VPNroulette is a free VPN service that allows you to connect to any country in the world." + bcolors.ENDC)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "  This software comes without any kind of guarantee and it's going to be used under your own responsability." + bcolors.ENDC)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "  Please don't be evil, or your account will be suspended inmediately without notice" + bcolors.ENDC)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "----------------------------------------------------------------------------------------------------------" + bcolors.ENDC)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "For more information visit: https://vpnroulette.com" + bcolors.ENDC)
+
+def login(vpnrusermail, vpnruserpasswd):
+
+    username = vpnrusermail
+    password = vpnruserpasswd
+    
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", username):
+        return 4
+
+    if not re.match(r"^[a-zA-Z0-9_]+$", password):
+        return 6
+
+    data = {
+        'username': username,
+        'password': password,
+    }
+
+    r = requests.post('http://api2.vpnroulette.net:8181/auth/login?email='+username+'&password='+password, data=data)
+    
+    # Uncomment to debug
+    # print(r.text)
+
+
+
+
+    if r.status_code == 200:
+        print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "You are successfully loged in!"+ ' - [ ' + str(r.status_code) + ' ]' + bcolors.ENDC )
+
+        # check if directory exists if not create it
+        if not os.path.exists(config_dir):
+            print_banner()
+            os.makedirs(config_dir)
+
+        # save token to ~/.vpnroulette/token
+        with open(os.path.expanduser('~/.vpnr-client/token'), 'w') as f:
+            f.write(r.text)
+        return 0
+
+    elif r.status_code == 400:
+        return 2
+    elif r.status_code == 401:
+        return 3
+    else:
+        return 1
+
+
+# funtion to get random tunnel
+def get_tunnel(country_code):
+    
+        # get token from ~/.vpnroulette/token
+        with open(os.path.expanduser('~/.vpnr-client/token'), 'r') as f:
+            token = f.read()
+    
+        headers = {
+            'Authorization': 'Token: ' + token,
+            'Content-Type': 'application/json',
+        }
+    
+        r = requests.get('http://api2.vpnroulette.net:8181/tunnel/random', headers=headers)
+    
+        # Uncomment to debug
+        #print(r.text)
+    
+        if r.status_code == 200:
+            tunnel_encoded_data = json.loads(r.text)
+            tunnel_data = base64_decode(tunnel_encoded_data['content'])
+            tunnel = str(tunnel_data, 'utf-8')
+            # print(tunnel_data)
+            # save tunnel_data to ~/.vpnroulette/tunnel.ovpn
+            file = '~/.vpnr-client/tunnel.ovpn'
+            with open(os.path.expanduser(file), 'w') as f:
+                # replace \n with \r\n
+                f.write(tunnel)
+
+                print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Tunnel data saved: OK" + bcolors.ENDC )
+                return file
+            # print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Connecting to: " + bcolors.ENDC + r.json()['tunnel']['host'])
+            return 0
+        else:
+            return 1
+    
+
+# get remote ip address from file ~/.vpnroulette/tunnel.ovpn
+def get_remote_ip(file):
+    # get tunnel data from ~/.vpnroulette/tunnel.ovpn
+    with open(os.path.expanduser(file), 'r') as f:
+        tunnel = f.read()
+    # get remote ip address from tunnel data
+    remote_ip = re.search(r"remote\s([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})", tunnel).group(1)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Your new ip address: " + bcolors.ENDC + remote_ip)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Creating a VPN tunnel need root privileges, you will be prompted by sudo: " + bcolors.ENDC + remote_ip)
+    return remote_ip
+
+
+# function to run openvpn with the tunnel file
+def run_openvpn(file):
+    # run openvpn with tunnel file as sudo
+    os.system('sudo openvpn ' + file)
+    # subprocess.Popen(['openvpn', file])
+    return 0
+
+
+
+check_dependencies()
+ask_credentials()
+get_remote_ip(get_tunnel(show_country_list(country_codes)))
+run_openvpn(file)

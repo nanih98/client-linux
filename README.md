@@ -1,7 +1,7 @@
 #  **VPNRoulette Client**
 <br>
 <p align="center" >
-    <img src="vpnroulette-logo.png" width="350">  
+    <img src="vpnroulette-logo.png" width="250">  
 <br/>
 </p>
 VPNRoulette is a service that offers you FREE VPN tunnels all around the globe. It allows you to:
@@ -16,6 +16,12 @@ There are some cool features coming soon.
 Stay tuned!
 https://vpnroulette.net
 
+----
+| Version | Release | Date |
+| ------- | --------|---------- |
+| Alpha 1 | 0.0.4 | 2020-05-31 |
+| Alpha 2 | 0.2.0 | 2020-09-21 |
+| Beta 1  | 0.3.7 | 2021-02-02 |
 
 ----
 

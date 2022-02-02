@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALL_PATH="/usr/local/bin/vpnroulette"
-DEPENDENCIES=('openvpn' 'jq' 'toilet' 'curl')
+DEPENDENCIES=('openvpn' 'curl')
 PSR="\e[35m >> \e[92m"
 PSRE="\e[31m >> \e[92m"
 DEF="\e[39m "
@@ -11,7 +11,7 @@ function banner() {
 	echo -e "${PSR} Thank you for using VPNROULETTE! [https://vpnroulette.com]${DEF}"
 	echo -e "${PSR} ----------------------------------------------------------${DEF}"
 	echo ""
-	echo -e "${PSR} Now you can type: ${DEF}vpnroulette and press ENTER"
+	echo -e "${PSR} After the installation type: ${DEF}vpnroulette and press ENTER"
 	echo -e "${PSR} Enjoy your VPN connection!${DEF}"
 	echo -e "${PSR} For more information please visit our website or join our Discord server! [ https://discord.gg/6CCD6P3T ]${DEF}"
 }
