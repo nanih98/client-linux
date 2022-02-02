@@ -18,7 +18,7 @@ function banner() {
 
 function install() {
 	printf "${PSR} Installing vpnroulette into ${INSTALL_PATH}...............${DEF}\n"
-	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/zpol/vpnroulette-debian/main/vpnroulette"
+	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/vpnroulette"
 	chmod +x ${INSTALL_PATH}
 }
 
