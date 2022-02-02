@@ -71,7 +71,7 @@ TIP: Hit ENTER in username and password questions if you don't have a user accou
 
    * Open a terminal and type:
 
-    `curl -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-mac.sh" |bash -`
+    curl -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/utils/installer-mac.sh" |bash -
 
 
 ### ***Raspi3/4***
@@ -81,7 +81,7 @@ TIP: Hit ENTER in username and password questions if you don't have a user accou
 
 ### ***Windows***
 
-   * Coming soon...
+   `Coming soon...`
 
 
 ## ***Want to know more?***
