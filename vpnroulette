@@ -29,7 +29,7 @@ country_codes = ["XX"]
 def show_country_list(country_codes):
 
     if country_codes == ["XX"]:
-        print(bcolors.FAIL + ">> " + bcolors.ENDC + "Random country mode is enabled (Subscribe to get access to all countries - https://vpnroulette.com/subscribe)")
+        print(bcolors.OKGREEN + ">> " + bcolors.HEADER + "Random country mode is enabled (Subscribe to get access to all countries - https://vpnroulette.com/subscribe)")
         
     else:
 
