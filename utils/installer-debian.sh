@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALL_PATH="/usr/local/bin/vpnroulette"
-DEPENDENCIES=('openvpn' 'curl')
+DEPENDENCIES=('openvpn' 'curl' 'pip3' 'python3' 'python3-pip')
 PSR="\e[35m >> \e[92m"
 PSRE="\e[31m >> \e[92m"
 DEF="\e[39m "
@@ -20,6 +20,9 @@ function install() {
 	echo -e "${PSR} Installing vpnroulette into ${INSTALL_PATH}...............${DEF}"
 	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/vpnroulette"
 	chmod +x ${INSTALL_PATH}
+	pip3 install importlib_metadata
+    pip3 install termcolor
+    pip3 install pyfiglet
 }
 
 function is_installed() {
