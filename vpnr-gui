@@ -1,0 +1,95 @@
+#!/usr/local/bin/python3
+
+from base64 import encode
+from cProfile import label
+from cgitb import text
+import sys
+import tkinter
+from tokenize import String
+from importlib_metadata import version
+from itsdangerous import base64_decode
+from matplotlib.pyplot import margins
+import requests
+import json
+import re
+import os
+import subprocess
+
+
+from tkinter import *
+from tkinter import ttk 
+from PIL import ImageTk, Image
+
+from colorama import init
+init(strip=not sys.stdout.isatty()) # strip colors if stdout is redirected
+from termcolor import cprint 
+from pyfiglet import figlet_format
+
+
+def loading_animation():
+    # loading animation
+    loading_label = Label(loginInterface, text="Loading...", font=("Helvetica", 10))
+    loading_label.place(x=150, y=260)
+    loading_label.after(3000, loading_label.destroy())
+
+
+def login(vpnrusermail, vpnruserpasswd):
+   
+    # destroy entry labels
+    login_entry.destroy()
+    password_entry.destroy()
+    login_button.destroy()
+
+    # show loading animation
+    loading_animation()
+
+
+loginInterface = Tk()
+# loginInterface.wm_attributes('-alpha', 0.93) 
+loginInterface.geometry('366x639')
+loginInterface.resizable(width=False, height=False)
+loginInterface.title('VpnRoulette - Login - Enjoy your freedom!')
+
+# set background color to 171717
+loginInterface['bg'] = '#171717'
+
+#define a canvas for logo
+path = os.path.dirname(os.path.abspath(__file__))
+
+logo = (Image.open(path+"/assets/vpnrbg.png"))
+resized_logo = logo.resize((366,148), Image.ANTIALIAS)
+new_logo = ImageTk.PhotoImage(resized_logo)
+Label(loginInterface, image=new_logo).pack(side=TOP)
+
+
+# create a text label with background color
+# text_label = Label(loginInterface, text="LOGIN", bg="#171717", fg="#ffffff", font=("Helvetica", 15)).pack(side=TOP)
+# text_label.pack()
+
+# create a login entry
+login_entry = Entry(loginInterface,bg="#171717", fg="#ffffff", font=("Helvetica", 15))
+login_entry.insert(0, "Enter your email")
+# on focus in and out
+login_entry.bind('<FocusIn>', lambda args: login_entry.delete('0', 'end'))
+
+
+login_entry.pack(side=TOP)
+
+login_entry.pack()
+
+# create a password entry
+password_entry = Entry(loginInterface, show="*")
+password_entry.insert(0, "Enter your password")
+# on focus in and out
+password_entry.bind('<FocusIn>', lambda args: password_entry.delete('0', 'end'))
+password_entry.pack()
+
+# craete a button to login
+# login_button = Button(loginInterface, text="Login", command=lambda: login(login_entry.get(), password_entry.get()))
+login_button = Button(loginInterface, text="Login", command=lambda: login(login_entry.get(), password_entry.get()))
+
+login_button.pack()
+
+
+ttk.Button(loginInterface, text="exit", command=quit).pack(side=BOTTOM)
+loginInterface.mainloop()

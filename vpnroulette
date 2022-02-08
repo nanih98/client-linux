@@ -2,6 +2,7 @@
 
 from base64 import encode
 import sys
+from click import launch
 from importlib_metadata import version
 from itsdangerous import base64_decode
 import requests
@@ -9,6 +10,10 @@ import json
 import re
 import os
 import subprocess
+import tkinter as tk
+from tkinter import *
+from PIL import Image, ImageTk
+
 
 from colorama import init
 init(strip=not sys.stdout.isatty()) # strip colors if stdout is redirected
@@ -191,8 +196,59 @@ def run_openvpn(file):
     return 0
 
 
+def launch_gui():
+
+
+
+    # launch a popup window asking for user credentials
+    root = tk.Tk()
+    root.title("VPNroulette - VPN Client")
+    root.wm_attributes('-alpha', 0.85)
+    root.geometry("366x639")
+    root.resizable(False, False)
+
+
+   
+
+    # show image as label
+    img = tk.PhotoImage(file="assets/vpnrbg.png")
+    label = tk.Label(root, image=img)
+    label.image = img
+    label.pack()
+    
+
+    # create a text label
+    label = tk.Label(root, text="Please enter your credentials:", bg='#f90', fg='#000')
+    label.pack()
+
+    # create a login entry
+    login_entry = tk.Entry(root)
+    login_entry.pack()
+
+    # create a password entry
+    password_entry = tk.Entry(root, show="*")
+    password_entry.pack()
+
+    Label(root, text="").pack()
+
+    # craete a button to login
+    login_button = tk.Button(root, text="Login", command=lambda: login(login_entry.get(), password_entry.get()))
+    login_button.pack()
+    
+
+
+    Label(root, text="").pack()
+
+
+    # create quit button
+    quit_button = tk.Button(root, text="Quit", command=root.destroy)
+    quit_button.pack()
+
+    
+
 
 check_dependencies()
+launch_gui()
 ask_credentials()
-get_remote_ip(get_tunnel(show_country_list(country_codes)))
-run_openvpn(file)
+# get_remote_ip(get_tunnel(show_country_list(country_codes)))
+# run_openvpn(file)
