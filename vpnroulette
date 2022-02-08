@@ -22,26 +22,32 @@ global file
 file = os.path.expanduser('~/.vpnr-client/tunnel.ovpn')
 config_dir = os.path.expanduser('~/.vpnr-client')
 
-country_codes = ["ES","US","UK","DE","FR","IT","NL","BE","SE","NO","DK","FI","PL","CZ","AT"]
-
+# country_codes = ["ES","US","UK","DE","FR","IT","NL","BE","SE","NO","DK","FI","PL","CZ","AT"]
+country_codes = ["XX"]
 
 # show country list for user to select one
 def show_country_list(country_codes):
-    for i, country in enumerate(country_codes):
 
-        # print countries in 3 aligned columns with numbers
-        index_num = i + 1
-        if i % 3 == 0:
-            print("")
-        print(bcolors.OKBLUE + str(index_num)+'. ' + bcolors.OKGREEN + country + bcolors.ENDC, end="   ")
+    if country_codes == ["XX"]:
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "Random country mode is enabled (Subscribe to get access to all countries - https://vpnroulette.com/subscribe)")
         
-    print("")
-    # read selected country
-    country = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Select country: " + bcolors.ENDC)
-    # associate selected number with country code
-    country_code = country_codes[int(country)-1]
-    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "You selected: " + bcolors.ENDC + country_code)
-    return country_code
+    else:
+
+        for i, country in enumerate(country_codes):
+
+            # print countries in 3 aligned columns with numbers
+            index_num = i + 1
+            if i % 3 == 0:
+                print("")
+            print(bcolors.OKBLUE + str(index_num)+'. ' + bcolors.OKGREEN + country + bcolors.ENDC, end="   ")
+            
+        print("")
+        # read selected country
+        country = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Select country: " + bcolors.ENDC)
+        # associate selected number with country code
+        country_code = country_codes[int(country)-1]
+        print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "You selected: " + bcolors.ENDC + country_code)
+        return country_code
     
     
 
@@ -171,6 +177,16 @@ def get_tunnel(country_code):
             return 1
     
 
+# geolocate IP address using ipinfo.io
+def geolocate(ip):
+    r = requests.get('http://ipinfo.io/' + ip + '/json')
+    if r.status_code == 200:
+        data = json.loads(r.text)
+        return data['country']
+    else:
+        return 1
+
+
 # get remote ip address from file ~/.vpnroulette/tunnel.ovpn
 def get_remote_ip(file):
     # get tunnel data from ~/.vpnroulette/tunnel.ovpn
@@ -179,7 +195,8 @@ def get_remote_ip(file):
     # get remote ip address from tunnel data
     remote_ip = re.search(r"remote\s([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})", tunnel).group(1)
     print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Your new ip address: " + bcolors.ENDC + remote_ip)
-    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Creating a VPN tunnel need root privileges, you will be prompted by sudo: " + bcolors.ENDC + remote_ip)
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Your new country: " + bcolors.ENDC + geolocate(remote_ip))
+    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Creating a VPN tunnel need root privileges, you will be prompted by sudo: " + bcolors.ENDC )
     return remote_ip
 
 
