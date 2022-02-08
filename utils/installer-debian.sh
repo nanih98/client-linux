@@ -23,6 +23,8 @@ function install() {
 	pip3 install importlib_metadata
     pip3 install termcolor
     pip3 install pyfiglet
+	pip3 install itsdangerous
+	
 }
 
 function is_installed() {
