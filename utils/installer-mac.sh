@@ -57,7 +57,7 @@ function check_dependencies() {
 }
 
 function install_py_modules() {
-	pip install requests json re colorama pyfiglet termcolor importlib_metadata itsdangerous
+	pip install requests colorama pyfiglet termcolor importlib_metadata itsdangerous
 }
 
 #init
