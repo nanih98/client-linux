@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALL_PATH="/usr/local/bin/vpnroulette"
-DEPENDENCIES=('openvpn' 'curl')
+DEPENDENCIES=('openvpn' 'curl' 'python' 'pip')
 PSR="\e[35m >> \e[92m"
 PSRE="\e[31m >> \e[92m"
 DEF="\e[39m "
@@ -45,6 +45,10 @@ function check_dependencies() {
 		if [ ${i} != "1" ]; then
 			printf "${PSRE} ${pkg} is not installed (installing via brew, may ask for your password)${DEF}\n"
 			brew install ${pkg}
+			if [ $? != "0" ]; then 
+				printf "${PSRE} ${pkg} could not be installed${DEF}\n"
+				exit 1
+			fi
 		else
 			printf "${PSR} ${pkg} is installed ......OK${DEF}\n"
 		fi
@@ -52,8 +56,11 @@ function check_dependencies() {
 	install
 }
 
-
+function install_py_modules() {
+	pip install requests json re colorama pyfiglet termcolor importlib_metadata itsdangerous
+}
 
 #init
 check_dependencies
+install_py_modules
 banner
