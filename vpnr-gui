@@ -5,7 +5,9 @@ from cProfile import label
 from cgitb import text
 import sys
 import tkinter
+from tkinter.font import Font
 from tokenize import String
+from turtle import color
 from importlib_metadata import version
 from itsdangerous import base64_decode
 from matplotlib.pyplot import margins
@@ -26,12 +28,46 @@ from termcolor import cprint
 from pyfiglet import figlet_format
 
 
+config_dir = os.path.expanduser('~/.vpnr-client')
+global file 
+
+
+
+def run_openvpn(file):
+    # run openvpn with tunnel file as sudo
+    os.system('sudo openvpn ' + file)
+    # subprocess.Popen(['openvpn', file])
+    return 0
+
+# geolocate IP address using ipinfo.io
+def geolocate(ip):
+    r = requests.get('http://ipinfo.io/' + ip + '/json')
+    if r.status_code == 200:
+        data = json.loads(r.text)
+        return data['country']
+    else:
+        return 1
+
+
+# get remote ip address from file ~/.vpnroulette/tunnel.ovpn
+def get_remote_ip(file):
+    print(file)
+    # get tunnel data from ~/.vpnroulette/tunnel.ovpn
+    with open(os.path.expanduser(file), 'r') as f:
+        tunnel = f.read()
+    # extract ip adress from tunnel data
+    remote_ip = re.search(r'(?<=remote )[0-9]+(?=\.\d+\.\d+\.\d+\.\d+)', tunnel)
+    # remote_ip = re.search(r"remote\s([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})", tunnel)
+    print( "Your new ip address: " + remote_ip)
+    print( "Your new country: " + geolocate(remote_ip))
+    print( "Creating a VPN tunnel need root privileges, you will be prompted by sudo: "  )
+    return remote_ip  
+
 def loading_animation():
     # loading animation
-    loading_label = Label(loginInterface, text="Loading...", font=("Helvetica", 10))
+    loading_label = Label(loginInterface, text="<< Loading... >>", font=("Helvetica", 10), fg="white", bg="black")
     loading_label.place(x=150, y=260)
-    loading_label.after(3000, loading_label.destroy())
-
+    loading_label.after(1000, loading_label.destroy)
 
 def login(vpnrusermail, vpnruserpasswd):
    
@@ -43,12 +79,65 @@ def login(vpnrusermail, vpnruserpasswd):
     # show loading animation
     loading_animation()
 
+    file = os.path.expanduser('~/.vpnr-client/tunnel.ovpn')
+
+    # authenticate user against http://api2.vpnroulette.net:8181/auth/login
+    # and get the token
+    payload = {'email': vpnrusermail, 'password': vpnruserpasswd}
+    r = requests.post('http://api2.vpnroulette.net:8181/auth/login', data=payload)
+    # token = r.json()['token']
+    # print(r.json())
+
+    if r.status_code == 200:
+        print("You are successfully loged in!"+ ' - [ ' + str(r.status_code) + ' ]' )
+
+        # check if directory exists if not create it
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+
+        # save token to ~/.vpnroulette/token
+        with open(os.path.expanduser('~/.vpnr-client/token'), 'w') as f:
+            f.write(r.text)
+
+        # get token from ~/.vpnroulette/token
+        with open(os.path.expanduser('~/.vpnr-client/token'), 'r') as f:
+            token = f.read()
+
+        headers = {
+            'Authorization': 'Token: ' + token,
+            'Content-Type': 'application/json',
+        }
+
+        r = requests.get('http://api2.vpnroulette.net:8181/tunnel/random', headers=headers)
+
+        # Uncomment to debug
+        #print(r.text)
+
+        if r.status_code == 200:
+            tunnel_encoded_data = json.loads(r.text)
+            tunnel_data = base64_decode(tunnel_encoded_data['content'])
+            tunnel = str(tunnel_data, 'utf-8')
+            print(tunnel_data)
+            # save tunnel_data to ~/.vpnroulette/tunnel.ovpn
+            file = '~/.vpnr-client/tunnel.ovpn'
+            with open(os.path.expanduser(file), 'w') as f:
+                # replace \n with \r\n
+                f.write(tunnel)
+
+                print("Tunnel data saved: OK" )
+                get_remote_ip(file)
+                run_openvpn(file)                
+    else:
+        return 1
+
+
+
 
 loginInterface = Tk()
 # loginInterface.wm_attributes('-alpha', 0.93) 
 loginInterface.geometry('366x639')
 loginInterface.resizable(width=False, height=False)
-loginInterface.title('VpnRoulette - Login - Enjoy your freedom!')
+loginInterface.title('VpnRoulette')
 
 # set background color to 171717
 loginInterface['bg'] = '#171717'
@@ -86,7 +175,7 @@ password_entry.pack()
 
 # craete a button to login
 # login_button = Button(loginInterface, text="Login", command=lambda: login(login_entry.get(), password_entry.get()))
-login_button = Button(loginInterface, text="Login", command=lambda: login(login_entry.get(), password_entry.get()))
+login_button = Button(loginInterface, text="Get random tunnel!", command=lambda: login(login_entry.get(), password_entry.get()))
 
 login_button.pack()
 
