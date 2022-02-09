@@ -7,6 +7,13 @@ PSRE="\e[31m >> \e[92m"
 DEF="\e[39m "
 
 
+function install_update_resolv_script() {
+	echo -e "$PSR Installing resolv.conf script... $DEF"
+	curl -s https://raw.githubusercontent.com/vpnroulette/client-linux/utils/update-resolv-conf > /usr/local/bin/update-resolv-conf
+	chmod +x /usr/local/bin/update-resolv-conf
+	echo -e "$PSR Done! $DEF"
+}
+
 function banner() {
 	printf "${PSR} Thank you for using VPNROULETTE! [https://vpnroulette.net]${DEF}\n"
 	printf "${PSR} ----------------------------------------------------------${DEF}\n"
@@ -20,7 +27,10 @@ function install() {
 	printf "${PSR} Installing vpnroulette into ${INSTALL_PATH}...............${DEF}\n"
 	curl -o ${INSTALL_PATH} -s "https://raw.githubusercontent.com/vpnroulette/client-linux/main/vpnroulette"
 	chmod +x ${INSTALL_PATH}
+	sed -i "" "s|/usr/bin/python3|/usr/local/bin/python3|g" ${INSTALL_PATH}
 	ln -s /usr/local/opt/openvpn/sbin/openvpn /usr/local/bin/openvpn
+	echo -e "$PSR Done! $DEF"
+
 }
 
 function is_installed() {

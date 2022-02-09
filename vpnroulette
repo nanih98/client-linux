@@ -19,11 +19,30 @@ version="Beta release 1.0"
 cprint(figlet_format('VPNroulette', font='speed'), 'green')
 print(version+"\n")
 global file 
+global os_detected
+
 file = os.path.expanduser('~/.vpnr-client/tunnel.ovpn')
 config_dir = os.path.expanduser('~/.vpnr-client')
 
 # country_codes = ["ES","US","UK","DE","FR","IT","NL","BE","SE","NO","DK","FI","PL","CZ","AT"]
 country_codes = ["XX"]
+
+# detect operating system
+def detect_os():
+    if sys.platform.startswith('linux'):
+        os_detected = 'linux'
+        return 'linux'
+    elif sys.platform.startswith('win32'):
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "Windows is not supported yet")
+        return 'windows'
+        
+    elif sys.platform.startswith('darwin'):
+        return 'mac'
+    else:
+        print(bcolors.FAIL + ">> " + bcolors.ENDC + "Your OS is not supported")
+        return 'unknown'
+
+os_detected = detect_os()
 
 # show country list for user to select one
 def show_country_list(country_codes):
@@ -53,10 +72,26 @@ def show_country_list(country_codes):
 
 # function ask user for access credentials
 def ask_credentials():
-    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Please enter your credentials:" + bcolors.ENDC)
-    vpnrusermail = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Email: " + bcolors.ENDC)
-    vpnruserpasswd = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Password: " + bcolors.ENDC)
-    login(vpnrusermail, vpnruserpasswd)
+
+    # if credentials file exists, read them
+    if os.path.isfile(os.path.expanduser('~/.vpnr-client/config')):
+        with open(os.path.expanduser('~/.vpnr-client/config'), 'r') as f:
+            config = json.load(f)
+            vpnrusermail = config['username']
+            vpnruserpasswd = config['password']
+            login(vpnrusermail, vpnruserpasswd)
+            
+    else:
+        # ask user for credentials
+        print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Please enter your credentials:" + bcolors.ENDC)
+        vpnrusermail = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Email: " + bcolors.ENDC)
+        vpnruserpasswd = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Password: " + bcolors.ENDC)
+
+        # save credentials in json in file ~/.vpnr-client/token
+        with open(os.path.expanduser('~/.vpnr-client/config'), 'w') as f:
+            json.dump({'username': vpnrusermail, 'password': vpnruserpasswd}, f)
+
+        login(vpnrusermail, vpnruserpasswd)
 
 # functio to check if dependencies are installed
 def check_dependencies():
@@ -117,9 +152,6 @@ def login(vpnrusermail, vpnruserpasswd):
     # Uncomment to debug
     # print(r.text)
 
-
-
-
     if r.status_code == 200:
         print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "You are successfully loged in!"+ ' - [ ' + str(r.status_code) + ' ]' + bcolors.ENDC )
 
@@ -170,6 +202,18 @@ def get_tunnel(country_code):
                 f.write(tunnel)
 
                 print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Tunnel data saved: OK" + bcolors.ENDC )
+                print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Tunnel data saved in: " + file + bcolors.ENDC )
+
+                # add specific MacOS configs for openvpn to the end of the file (MacOS only)
+                if sys.platform == 'darwin':
+                    with open(os.path.expanduser(file), 'a') as f:
+                        f.write('script-security 2\n')
+                        f.write('up /usr/local/bin/update-resolv-conf\n')
+                        f.write('down /usr/local/bin/update-resolv-conf\n')
+                        f.write('dhcp-option DNS 8.8.8.8\n')
+                        f.write('\n')                    
+
+                    print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Tunnel data specific for MacOS: OK" + bcolors.ENDC )
                 return file
             # print(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Connecting to: " + bcolors.ENDC + r.json()['tunnel']['host'])
             return 0
