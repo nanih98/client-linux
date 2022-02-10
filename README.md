@@ -14,7 +14,7 @@ VPNRoulette is a service that offers you FREE VPN tunnels all around the globe. 
 
 There are some cool features coming soon.
 Stay tuned!
-https://vpnroulette.net
+https://vpnroulette.com
 
 ----
 | Version | Release | Date |
