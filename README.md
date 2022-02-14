@@ -22,6 +22,7 @@ https://vpnroulette.com
 | Alpha 1 | 0.0.4 | 2020-05-31 |
 | Alpha 2 | 0.2.0 | 2020-09-21 |
 | Beta 1  | 0.3.7 | 2021-02-02 |
+| Beta 2  | 0.3.8 | 2021-02-10 |
 
 ----
 
@@ -44,12 +45,12 @@ Soon a client for Mobile platforms will be available.
 1. Open a terminal and type:
 `vpnroulette`
 
+
+Get an account on https://register.vpnroulette.com and use ir when prompted by the client.
+
+That's it! Enjoy! =) 
+
    <center> <img src="utils/vpnroulette.gif"> </center>
-
-
-That's it! You will be automatically prompted for access credentials.  
-
-TIP: Hit ENTER in username and password questions if you don't have a user account in vpnroulette.net)
 
 
 ## ***Client installation***

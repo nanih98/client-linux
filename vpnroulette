@@ -16,7 +16,7 @@ from termcolor import cprint
 from pyfiglet import figlet_format
 
 version="Beta release 1.0"
-cprint(figlet_format('VPNroulette', font='speed'), 'green')
+cprint(figlet_format('VPNroulette', font='smslant'), 'green')
 print(version+"\n")
 global file 
 global os_detected
