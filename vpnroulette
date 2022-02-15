@@ -87,6 +87,10 @@ def ask_credentials():
         vpnrusermail = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Email: " + bcolors.ENDC)
         vpnruserpasswd = input(bcolors.OKBLUE + '>> '+ bcolors.OKGREEN + "Password: " + bcolors.ENDC)
 
+        # if config directory doesn't exist, create it
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+
         # save credentials in json in file ~/.vpnr-client/token
         with open(os.path.expanduser('~/.vpnr-client/config'), 'w') as f:
             json.dump({'username': vpnrusermail, 'password': vpnruserpasswd}, f)
