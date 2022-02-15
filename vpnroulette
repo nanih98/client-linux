@@ -15,7 +15,7 @@ init(strip=not sys.stdout.isatty()) # strip colors if stdout is redirected
 from termcolor import cprint 
 from pyfiglet import figlet_format
 
-version="Beta release 1.0"
+version="Beta release 0.3.9"
 cprint(figlet_format('VPNroulette', font='smslant'), 'green')
 print(version+"\n")
 global file 
